@@ -1,0 +1,29 @@
+import std/test { assert_true, assert_false }
+import "./ranges" { _is_wide, _is_zero }
+
+fun test_wide_blocks() {
+    assert_true(_is_wide(19968))
+    assert_true(_is_wide(65281))
+    assert_true(_is_wide(44032))
+    assert_true(_is_wide(127744))
+}
+
+fun test_not_wide() {
+    assert_false(_is_wide(65))
+    assert_false(_is_wide(12351))
+    assert_false(_is_wide(1114111))
+}
+
+fun test_zero_blocks() {
+    assert_true(_is_zero(769))
+    assert_true(_is_zero(8203))
+    assert_true(_is_zero(65039))
+    assert_true(_is_zero(65279))
+}
+
+fun test_not_zero() {
+    assert_false(_is_zero(65))
+    assert_false(_is_zero(19968))
+    // Thai vowels that occupy their own cell stay width one.
+    assert_false(_is_zero(3634))
+}

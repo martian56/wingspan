@@ -1,0 +1,219 @@
+// wingspan: display width for terminal text.
+//
+//     import "github.com/martian56/wingspan" { width, pad_right }
+//
+//     width("hello")       // 5
+//     width("你好")        // 4
+//     pad_right("名前", 8) // "名前    "
+//
+// A String's length() counts UTF-8 bytes, and that is the wrong number for
+// lining up columns: CJK characters take two cells, combining marks take
+// none, and ANSI color codes take none at all. This library counts what the
+// terminal actually draws.
+
+import std/string
+import "./ranges" { _is_wide, _is_zero }
+
+// One decoded character: its codepoint, its size in bytes, and how many
+// terminal columns it takes.
+struct CharInfo {
+    cp: Int,
+    size: Int,
+    width: Int,
+}
+
+// Decode the UTF-8 character starting at byte offset i. An invalid or
+// truncated sequence decodes as U+FFFD with size 1, so a scan always makes
+// progress. An offset at or past the end returns size 0.
+fun decode(s: String, i: Int) -> CharInfo {
+    let n = s.length()
+    if i >= n {
+        return CharInfo { cp: 0, size: 0, width: 0 }
+    }
+    let b0 = s.byte_at(i)
+    if b0 < 128 {
+        return CharInfo { cp: b0, size: 1, width: char_width(b0) }
+    }
+    if b0 < 194 {
+        return _replacement()
+    }
+    if b0 < 224 {
+        if i + 1 >= n || !_is_cont(s.byte_at(i + 1)) {
+            return _replacement()
+        }
+        let cp = ((b0 & 31) << 6) | (s.byte_at(i + 1) & 63)
+        return CharInfo { cp, size: 2, width: char_width(cp) }
+    }
+    if b0 < 240 {
+        if i + 2 >= n || !_is_cont(s.byte_at(i + 1)) || !_is_cont(s.byte_at(i + 2)) {
+            return _replacement()
+        }
+        let cp = ((b0 & 15) << 12) | ((s.byte_at(i + 1) & 63) << 6) | (s.byte_at(i + 2) & 63)
+        if cp < 2048 || (cp >= 55296 && cp <= 57343) {
+            return _replacement()
+        }
+        return CharInfo { cp, size: 3, width: char_width(cp) }
+    }
+    if b0 < 245 {
+        if i + 3 >= n {
+            return _replacement()
+        }
+        if !_is_cont(s.byte_at(i + 1)) || !_is_cont(s.byte_at(i + 2)) || !_is_cont(s.byte_at(i + 3)) {
+            return _replacement()
+        }
+        let cp = ((b0 & 7) << 18) | ((s.byte_at(i + 1) & 63) << 12)
+        cp = cp | ((s.byte_at(i + 2) & 63) << 6) | (s.byte_at(i + 3) & 63)
+        if cp < 65536 || cp > 1114111 {
+            return _replacement()
+        }
+        return CharInfo { cp, size: 4, width: char_width(cp) }
+    }
+    return _replacement()
+}
+
+// Columns a single codepoint takes: 0, 1, or 2. Control characters count as
+// 0 because a terminal draws nothing for them.
+fun char_width(cp: Int) -> Int {
+    if cp < 32 {
+        return 0
+    }
+    if cp >= 127 && cp < 160 {
+        return 0
+    }
+    if _is_zero(cp) {
+        return 0
+    }
+    if _is_wide(cp) {
+        return 2
+    }
+    return 1
+}
+
+// Columns the whole string takes when printed.
+fun width(s: String) -> Int {
+    let total = 0
+    let i = 0
+    let n = s.length()
+    while i < n {
+        let c = decode(s, i)
+        total = total + c.width
+        i = i + c.size
+    }
+    return total
+}
+
+// Like width, but ANSI escape sequences count as 0 columns, so a string
+// styled with color codes measures at its printed size. CSI sequences
+// (ESC [ ... final) and OSC sequences (ESC ] ... BEL or ESC \) are skipped
+// whole; any other ESC pair is skipped as two characters.
+fun visible_width(s: String) -> Int {
+    let total = 0
+    let i = 0
+    let n = s.length()
+    while i < n {
+        if s.byte_at(i) == 27 {
+            i = _skip_escape(s, i)
+        } else {
+            let c = decode(s, i)
+            total = total + c.width
+            i = i + c.size
+        }
+    }
+    return total
+}
+
+// Cut s so it fits in at most max columns, keeping whole characters. A wide
+// character that would straddle the limit is dropped.
+fun truncate(s: String, max: Int) -> String {
+    if max <= 0 {
+        return ""
+    }
+    let used = 0
+    let i = 0
+    let n = s.length()
+    while i < n {
+        let c = decode(s, i)
+        if used + c.width > max {
+            return s.substring(0, i)
+        }
+        used = used + c.width
+        i = i + c.size
+    }
+    return s
+}
+
+// Pad with trailing spaces to w columns. A string already at or past w comes
+// back unchanged.
+fun pad_right(s: String, w: Int) -> String {
+    let d = w - width(s)
+    if d <= 0 {
+        return s
+    }
+    return s.concat(" ".repeat(d))
+}
+
+// Pad with leading spaces to w columns.
+fun pad_left(s: String, w: Int) -> String {
+    let d = w - width(s)
+    if d <= 0 {
+        return s
+    }
+    return " ".repeat(d).concat(s)
+}
+
+// Center in w columns. An odd leftover space goes to the right side.
+fun center(s: String, w: Int) -> String {
+    let d = w - width(s)
+    if d <= 0 {
+        return s
+    }
+    let left = d / 2
+    return " ".repeat(left).concat(s).concat(" ".repeat(d - left))
+}
+
+fun _replacement() -> CharInfo {
+    return CharInfo { cp: 65533, size: 1, width: 1 }
+}
+
+fun _is_cont(b: Int) -> Bool {
+    return b >= 128 && b < 192
+}
+
+// Advance past the escape sequence starting at byte i (which holds ESC) and
+// return the offset of the next character after it.
+fun _skip_escape(s: String, i: Int) -> Int {
+    let n = s.length()
+    if i + 1 >= n {
+        return n
+    }
+    let kind = s.byte_at(i + 1)
+    if kind == 91 {
+        // CSI: parameter and intermediate bytes, then one final byte in
+        // the 0x40..0x7E range.
+        let j = i + 2
+        while j < n {
+            let b = s.byte_at(j)
+            if b >= 64 && b <= 126 {
+                return j + 1
+            }
+            j = j + 1
+        }
+        return n
+    }
+    if kind == 93 {
+        // OSC: runs to BEL or to ESC backslash.
+        let j = i + 2
+        while j < n {
+            let b = s.byte_at(j)
+            if b == 7 {
+                return j + 1
+            }
+            if b == 27 && j + 1 < n && s.byte_at(j + 1) == 92 {
+                return j + 2
+            }
+            j = j + 1
+        }
+        return n
+    }
+    return i + 2
+}

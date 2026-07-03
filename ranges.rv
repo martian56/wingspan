@@ -1,0 +1,177 @@
+// Internal Unicode range tables behind the width lookups in lib.rv. The wide
+// set follows East Asian Width (W and F), the zero set covers the common
+// combining blocks and format characters. Both are curated subsets; the
+// README says what is left out.
+
+// True when the codepoint takes two terminal columns.
+fun _is_wide(cp: Int) -> Bool {
+    if cp < 4352 {
+        return false
+    }
+    if cp <= 4447 {
+        return true
+    }
+    if cp == 9001 || cp == 9002 {
+        return true
+    }
+    if cp >= 11904 && cp <= 12350 {
+        return true
+    }
+    if cp >= 12353 && cp <= 13311 {
+        return true
+    }
+    if cp >= 13312 && cp <= 19903 {
+        return true
+    }
+    if cp >= 19968 && cp <= 40959 {
+        return true
+    }
+    if cp >= 40960 && cp <= 42191 {
+        return true
+    }
+    if cp >= 43360 && cp <= 43391 {
+        return true
+    }
+    if cp >= 44032 && cp <= 55203 {
+        return true
+    }
+    if cp >= 63744 && cp <= 64255 {
+        return true
+    }
+    if cp >= 65040 && cp <= 65049 {
+        return true
+    }
+    if cp >= 65072 && cp <= 65135 {
+        return true
+    }
+    if cp >= 65280 && cp <= 65376 {
+        return true
+    }
+    if cp >= 65504 && cp <= 65510 {
+        return true
+    }
+    if cp >= 94176 && cp <= 94180 {
+        return true
+    }
+    if cp >= 94208 && cp <= 100343 {
+        return true
+    }
+    if cp >= 100352 && cp <= 101589 {
+        return true
+    }
+    if cp >= 110592 && cp <= 111355 {
+        return true
+    }
+    if cp == 126980 || cp == 127183 || cp == 127374 {
+        return true
+    }
+    if cp >= 127377 && cp <= 127386 {
+        return true
+    }
+    if cp >= 127488 && cp <= 127743 {
+        return true
+    }
+    if cp >= 127744 && cp <= 128591 {
+        return true
+    }
+    if cp >= 128640 && cp <= 128764 {
+        return true
+    }
+    if cp >= 128992 && cp <= 129003 {
+        return true
+    }
+    if cp >= 129292 && cp <= 129535 {
+        return true
+    }
+    if cp >= 129648 && cp <= 129791 {
+        return true
+    }
+    if cp >= 131072 && cp <= 196605 {
+        return true
+    }
+    if cp >= 196608 && cp <= 262141 {
+        return true
+    }
+    return false
+}
+
+// True when the codepoint occupies no column of its own: combining marks,
+// zero width spaces and joiners, variation selectors, and the BOM.
+fun _is_zero(cp: Int) -> Bool {
+    if cp < 768 {
+        return false
+    }
+    if cp <= 879 {
+        return true
+    }
+    if cp >= 1155 && cp <= 1161 {
+        return true
+    }
+    if cp >= 1425 && cp <= 1469 {
+        return true
+    }
+    if cp == 1471 || cp == 1473 || cp == 1474 {
+        return true
+    }
+    if cp == 1476 || cp == 1477 || cp == 1479 {
+        return true
+    }
+    if cp >= 1552 && cp <= 1562 {
+        return true
+    }
+    if cp >= 1611 && cp <= 1631 {
+        return true
+    }
+    if cp == 1648 {
+        return true
+    }
+    if cp >= 1750 && cp <= 1756 {
+        return true
+    }
+    if cp >= 1759 && cp <= 1764 {
+        return true
+    }
+    if cp == 1767 || cp == 1768 {
+        return true
+    }
+    if cp >= 1770 && cp <= 1773 {
+        return true
+    }
+    if cp >= 3633 && cp <= 3642 && cp != 3634 && cp != 3635 {
+        return true
+    }
+    if cp >= 3655 && cp <= 3662 {
+        return true
+    }
+    if cp >= 6832 && cp <= 6911 {
+        return true
+    }
+    if cp >= 7616 && cp <= 7679 {
+        return true
+    }
+    if cp >= 8203 && cp <= 8207 {
+        return true
+    }
+    if cp >= 8234 && cp <= 8238 {
+        return true
+    }
+    if cp == 8288 {
+        return true
+    }
+    if cp >= 8400 && cp <= 8447 {
+        return true
+    }
+    if cp >= 65024 && cp <= 65039 {
+        return true
+    }
+    if cp >= 65056 && cp <= 65071 {
+        return true
+    }
+    if cp == 65279 {
+        return true
+    }
+    if cp >= 917760 && cp <= 917999 {
+        return true
+    }
+    return false
+}
