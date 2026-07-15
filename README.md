@@ -1,5 +1,7 @@
 # wingspan
 
+[![CI](https://github.com/martian56/wingspan/actions/workflows/ci.yml/badge.svg)](https://github.com/martian56/wingspan/actions/workflows/ci.yml)
+
 Display width for terminal text, in pure Raven.
 
 A String's `length()` counts UTF-8 bytes, and that number lies the moment
@@ -17,7 +19,7 @@ draws.
 
 ## Usage
 
-```raven
+```rust
 import "github.com/martian56/wingspan" { width, visible_width, truncate, pad_right }
 
 width("hello")     // 5
@@ -48,7 +50,7 @@ pad_right("名前", 8)    // "名前    " (padded to 8 columns, not 8 bytes)
 
 Walking a string character by character:
 
-```raven
+```rust
 let i = 0
 while i < s.length() {
     let c = decode(s, i)
