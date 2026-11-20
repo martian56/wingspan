@@ -1,5 +1,5 @@
-import std/test { assert_true, assert_false }
-import "./ranges" { _is_wide, _is_zero }
+from std.test import assert_true, assert_false
+from "./ranges" import _is_wide, _is_zero
 
 fun test_wide_blocks() {
     assert_true(_is_wide(19968))

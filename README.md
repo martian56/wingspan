@@ -20,7 +20,7 @@ draws.
 ## Usage
 
 ```rust
-import "github.com/martian56/wingspan" { width, visible_width, truncate, pad_right }
+from "github.com/martian56/wingspan" import width, visible_width, truncate, pad_right
 
 width("hello")     // 5
 width("你好")      // 4, two columns per character
@@ -36,14 +36,14 @@ pad_right("名前", 8)    // "名前    " (padded to 8 columns, not 8 bytes)
 
 ## API
 
-- `width(s) -> Int`: columns the string takes when printed.
-- `visible_width(s) -> Int`: same, but ANSI escape sequences (CSI and OSC)
+- `width(s) -> int`: columns the string takes when printed.
+- `visible_width(s) -> int`: same, but ANSI escape sequences (CSI and OSC)
   count as zero, so colored text measures correctly.
-- `char_width(cp) -> Int`: columns for a single codepoint, 0, 1, or 2.
+- `char_width(cp) -> int`: columns for a single codepoint, 0, 1, or 2.
 - `decode(s, i) -> CharInfo`: the UTF-8 character at byte offset `i`, as
   `{ cp, size, width }`. Invalid bytes decode as U+FFFD with size 1, and an
   offset past the end returns size 0, so a scan always terminates.
-- `truncate(s, max) -> String`: cut to at most `max` columns on a character
+- `truncate(s, max) -> str`: cut to at most `max` columns on a character
   boundary. A wide character never straddles the limit.
 - `pad_left(s, w)`, `pad_right(s, w)`, `center(s, w)`: pad with spaces to
   `w` columns. Strings already at or past `w` come back unchanged.
