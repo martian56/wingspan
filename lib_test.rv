@@ -1,6 +1,6 @@
-import std/string
-import std/test { assert_eq_int, assert_eq_str, assert_true, assert_false }
-import "./lib" { decode, char_width, width, visible_width, truncate, pad_left, pad_right, center }
+import std.string
+from std.test import assert_eq_int, assert_eq_str, assert_true, assert_false
+from "./lib" import decode, char_width, width, visible_width, truncate, pad_left, pad_right, center
 
 fun test_width_ascii() {
     assert_eq_int(width("hello"), 5)

@@ -1,13 +1,13 @@
-// Build and run: raven build demo.rv -o demo && ./demo
-import std/io { println }
-import std/string
-import "./lib" { width, pad_right, truncate, visible_width }
+// Build and run: raven build demo.rv -o demo and ./demo
+from std.io import println
+import std.string
+from "./lib" import width, pad_right, truncate, visible_width
 
 fun main() {
     println("text          columns")
     println("----          -------")
     let rows = ["hello", "你好", "ラーメン", "café", "🚀 launch"]
-    let i = 0
+    var i = 0
     while i < rows.len() {
         let s = rows[i]
         let w = width(s)
